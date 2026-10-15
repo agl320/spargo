@@ -22,6 +22,10 @@ function CameraShake.Hit()
 	current = { Strength = HIT_STRENGTH, Time = HIT_TIME, Start = os.clock() }
 end
 
+function CameraShake.Stop()
+	current = nil
+end
+
 RunService:BindToRenderStep("CameraShake", Enum.RenderPriority.Camera.Value + 1, function()
 	if not current then return end
 	local progress = (os.clock() - current.Start) / current.Time

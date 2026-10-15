@@ -13,6 +13,8 @@ local launcherUnload = events:WaitForChild("LauncherUnload")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
+local scripts = player.PlayerScripts
+local utils = scripts:WaitForChild("Utils")
 local camera = workspace.CurrentCamera
 
 local screen = gui:WaitForChild("ScoreGUI")
@@ -20,6 +22,8 @@ local titleLabel = screen:WaitForChild("TitleLabel")
 local pointsLabel = titleLabel:WaitForChild("PointsLabel")
 local titleScale = titleLabel:WaitForChild("UIScale")
 local pointsScale = pointsLabel:WaitForChild("UIScale")
+
+local subject = require(utils:WaitForChild("Subject"))
 
 local CAMERA_TIME = 1.5
 local POP_TIME = 0.25
@@ -71,10 +75,7 @@ showScore.OnClientEvent:Connect(function(shooter, rings, points)
 		if lit == hit then hit.Material = Enum.Material.Neon end
 	end)
 
-	local character = shooter.Character
-	if not character then return end
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if not humanoid or camera.CameraSubject ~= humanoid then return end
+	if not subject.Is(shooter) then return end
 	local sound = points == bullseye and bullseyeSound or ringSound
 
 	local box, size = rings:GetBoundingBox()

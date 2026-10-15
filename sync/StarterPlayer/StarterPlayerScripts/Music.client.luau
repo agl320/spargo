@@ -46,13 +46,14 @@ end
 
 gameStarted.OnClientEvent:Connect(function(_, _, sound)
 	track = sound
+	Play(intermission)
 end)
 
 turnStarted.OnClientEvent:Connect(OnTurn)
 turnEnded.OnClientEvent:Connect(OnTurn)
 
 gameEnded.OnClientEvent:Connect(function()
-	Play(intermission)
+	Play(lobby)
 end)
 
 Play(lobby)

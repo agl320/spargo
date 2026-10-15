@@ -37,6 +37,11 @@ function Launcher.Load(player, map)
 	if character then
 		local root = character:FindFirstChild("HumanoidRootPart")
 		if root then root.Anchored = true end
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.WalkSpeed = 0
+			humanoid.JumpHeight = 0
+		end
 		character:PivotTo(map.GetOrigin())
 		character.Parent = map.GetSeat()
 	end
@@ -64,7 +69,7 @@ function Launcher.Fire(player, duration, onAimEnd)
 	local direction = launcher.Map.GetDirection()
 	launcher.Map.OnFire()
 	if not player.Parent then return nil end
-	launcherFired:FireClient(player, launcher.Power)
+	launcherFired:FireAllClients(player, launcher.Power)
 
 	local character = player.Character
 	if character then character.Parent = workspace end
@@ -95,7 +100,7 @@ function Launcher.Fire(player, duration, onAimEnd)
 	if not player.Parent then return nil end
 
 	if hit then
-		launcherHit:FireClient(player, hit.Position)
+		launcherHit:FireAllClients(player, hit.Position)
 		playAnimation:FireClient(player, inventory.GetItem(player, "SplatAnimations").Animation)
 		sounds.Play(inventory.GetItem(player, "SplatSounds").Sound, hit.Position)
 	end
@@ -114,7 +119,7 @@ end
 launcherAim.OnServerEvent:Connect(function(player, pitch, yaw)
 	local launcher = launchers[player]
 	if not launcher or launcher.Power or not IsNumber(pitch) or not IsNumber(yaw) then return end
-	launcher.Map.OnAim(math.clamp(pitch, aim.PITCH_MIN, aim.PITCH_MAX), math.clamp(yaw, aim.YAW_MIN, aim.YAW_MAX))
+	launcher.Map.OnAim(math.clamp(pitch, aim.PITCH_ANGLE_MIN, aim.PITCH_ANGLE_MAX), math.clamp(yaw, aim.YAW_ANGLE_MIN, aim.YAW_ANGLE_MAX))
 end)
 
 launcherFire.OnServerEvent:Connect(function(player, power)

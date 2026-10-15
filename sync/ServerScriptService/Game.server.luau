@@ -12,9 +12,14 @@ local classic = require(modes.Classic)
 local modifiers = ServerScriptService.GameModifiers
 local offset = require(modifiers.Offset)
 
+local utils = ServerScriptService.Utils
+local timer = require(utils.Timer)
+
 local maps = ServerScriptService.Maps
 local beach = require(maps.Beach)
 local stadium = require(maps.Stadium)
+
+local LOBBY_TIME = 10
 
 local pool = { beach, stadium }
 
@@ -28,6 +33,9 @@ end)
 
 while true do
 	if #Players:GetPlayers() == 0 then Players.PlayerAdded:Wait() end
+
+	timer.Start(LOBBY_TIME, "Next game in...")
+	task.wait(LOBBY_TIME)
 
 	map = pool[math.random(#pool)]
 	map.Load()

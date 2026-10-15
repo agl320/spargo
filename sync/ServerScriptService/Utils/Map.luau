@@ -25,6 +25,10 @@ function Map.new(template)
 		return map.Model.Interactables.Spawn.CFrame + Vector3.new(0, 3, 0)
 	end
 
+	function map.GetCutscene()
+		return map.Model:FindFirstChild("Cutscene")
+	end
+
 	function map.GetOrigin()
 		error(template.Name .. " has no GetOrigin")
 	end

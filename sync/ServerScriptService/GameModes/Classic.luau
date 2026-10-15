@@ -15,11 +15,13 @@ local paint = require(utils.Paint)
 local spawner = require(utils.Spawner)
 local timer = require(utils.Timer)
 local focus = require(utils.Focus)
+local cutscene = require(utils.Cutscene)
 
 local dataStore = ServerScriptService.DataStore
 local coins = require(dataStore.Coins)
 
-local START_DELAY = 4
+local START_DELAY = 12
+local CUTSCENE_TIME = 10
 local SWAP_TIME = 4
 local TURN_TIME = 12
 local SCORE_DELAY = 2.5
@@ -47,6 +49,7 @@ end
 
 function Classic.Start(map)
 	timer.Start(START_DELAY, "Classic starting...")
+	cutscene.Play(map, CUTSCENE_TIME)
 	task.wait(START_DELAY)
 
 	players = Players:GetPlayers()
@@ -80,7 +83,8 @@ function Classic.Start(map)
 		end
 		launcher.Load(player, map)
 		local character = player.Character
-		focus.Set(character and character:FindFirstChild("HumanoidRootPart"))
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		focus.Add({ root })
 
 		timer.Start(TURN_TIME, player.DisplayName .. "'s Turn")
 
@@ -99,7 +103,7 @@ function Classic.Start(map)
 			end
 		end
 
-		focus.Clear()
+		focus.Remove({ root })
 		launcher.Unload(player)
 		SendTurn(turnEnded, order, index)
 	end

@@ -1,28 +1,32 @@
 local Players = game:GetService("Players")
 
-local current = nil
-
-local function Add(player)
-	if current then player:AddReplicationFocus(current) end
-end
+local active = {}
 
 local Focus = {}
 
-function Focus.Set(part)
-	current = part
-	for _, player in ipairs(Players:GetPlayers()) do
-		Add(player)
+function Focus.Add(parts)
+	for _, part in ipairs(parts) do
+		table.insert(active, part)
+		for _, player in ipairs(Players:GetPlayers()) do
+			player:AddReplicationFocus(part)
+		end
 	end
 end
 
-function Focus.Clear()
-	if not current then return end
-	for _, player in ipairs(Players:GetPlayers()) do
-		player:RemoveReplicationFocus(current)
+function Focus.Remove(parts)
+	for _, part in ipairs(parts) do
+		local index = table.find(active, part)
+		if index then table.remove(active, index) end
+		for _, player in ipairs(Players:GetPlayers()) do
+			player:RemoveReplicationFocus(part)
+		end
 	end
-	current = nil
 end
 
-Players.PlayerAdded:Connect(Add)
+Players.PlayerAdded:Connect(function(player)
+	for _, part in ipairs(active) do
+		player:AddReplicationFocus(part)
+	end
+end)
 
 return Focus

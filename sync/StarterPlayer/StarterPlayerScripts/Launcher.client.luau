@@ -14,11 +14,13 @@ local modules = ReplicatedStorage:WaitForChild("Modules")
 local aim = require(modules:WaitForChild("Aim"))
 
 local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
 local scripts = player.PlayerScripts
 local utils = scripts:WaitForChild("Utils")
 
 local playerModule = require(scripts:WaitForChild("PlayerModule"))
 local cameraShake = require(utils:WaitForChild("CameraShake"))
+local subject = require(utils:WaitForChild("Subject"))
 local controls = playerModule:GetControls()
 
 local AIM_SPEED = 50
@@ -40,14 +42,16 @@ launcherUnload.OnClientEvent:Connect(function(sender)
 	if sender == player then active = false end
 end)
 
-launcherFired.OnClientEvent:Connect(function(power)
-	active = false
-	cameraShake.Launch(power)
+launcherFired.OnClientEvent:Connect(function(sender, power)
+	if sender == player then active = false end
+	if subject.Is(sender) then cameraShake.Launch(power) end
 end)
 
-launcherHit.OnClientEvent:Connect(function()
-	cameraShake.Hit()
+launcherHit.OnClientEvent:Connect(function(sender)
+	if subject.Is(sender) then cameraShake.Hit() end
 end)
+
+camera:GetPropertyChangedSignal("CameraSubject"):Connect(cameraShake.Stop)
 
 playAnimation.OnClientEvent:Connect(function(animation)
 	local character = player.Character
@@ -64,7 +68,7 @@ end)
 RunService.PreRender:Connect(function(delta)
 	if not active then return end
 	local move = controls:GetMoveVector()
-	yaw = math.clamp(yaw + move.X * AIM_SPEED * delta, aim.YAW_MIN, aim.YAW_MAX)
-	pitch = math.clamp(pitch - move.Z * AIM_SPEED * delta, aim.PITCH_MIN, aim.PITCH_MAX)
+	yaw = math.clamp(yaw + move.X * AIM_SPEED * delta, aim.YAW_ANGLE_MIN, aim.YAW_ANGLE_MAX)
+	pitch = math.clamp(pitch - move.Z * AIM_SPEED * delta, aim.PITCH_ANGLE_MIN, aim.PITCH_ANGLE_MAX)
 	if move.Magnitude > 0 then launcherAim:FireServer(pitch, yaw) end
 end)
