@@ -22,17 +22,17 @@ local banner = frame:WaitForChild("BannerLabel")
 local titleLabel = frame:WaitForChild("TitleLabel")
 local statusLabel = frame:WaitForChild("StatusLabel")
 
-local IMAGE_WIDTH = 882
-local IMAGE_HEIGHT = 376
-local IMAGE_EDGE = 200
-local IMAGE_BAND = 100
+local IMAGE_WIDTH = 160
+local IMAGE_HEIGHT = 56
+local IMAGE_EDGE = 22
+local IMAGE_BAND = 12
 local BANNER_SCALE = 2.15
 local BANNER_PADDING = 16
 local BANNER_TIME = 0.4
 
--- Size the banner off the title text so the art always frames it. The multiplier
--- looks large because only the middle 273px of the 376px source is actually drawn;
--- the rest is transparent padding, so ~27% of this height is empty.
+-- Size the banner off the title text so the art always frames it. At the default
+-- TextSize of 26 this lands on 56, the source image's own height, so the caps draw
+-- at their authored size and SliceScale stays at 1.
 local BANNER_HEIGHT = math.round(titleLabel.TextSize * BANNER_SCALE)
 
 local TWEEN_IN = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
