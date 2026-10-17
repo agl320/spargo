@@ -26,9 +26,13 @@ local IMAGE_WIDTH = 882
 local IMAGE_HEIGHT = 376
 local IMAGE_EDGE = 200
 local IMAGE_BAND = 100
-local BANNER_HEIGHT = 44
+local BANNER_SCALE = 1.7
 local BANNER_PADDING = 16
 local BANNER_TIME = 0.4
+
+-- Size the banner off the title text so the art always frames it. Raise
+-- BANNER_SCALE if the artwork's edges crowd the text, lower it if it looks loose.
+local BANNER_HEIGHT = math.round(titleLabel.TextSize * BANNER_SCALE)
 
 local TWEEN_IN = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 local TWEEN_OUT = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
@@ -44,9 +48,6 @@ local edgeWidth = IMAGE_EDGE * 2 * sliceScale
 banner.ScaleType = Enum.ScaleType.Slice
 banner.SliceCenter = Rect.new(IMAGE_EDGE, IMAGE_BAND, IMAGE_WIDTH - IMAGE_EDGE, IMAGE_HEIGHT - IMAGE_BAND)
 banner.SliceScale = sliceScale
-
--- TEMPORARY: diagnosing why the slice bands render larger than SliceScale implies.
-print("[banner] wanted SliceScale", sliceScale, "readback", banner.SliceScale, banner.SliceCenter)
 
 -- TitleLabel is top-anchored in Frame, so centre the banner on its midline.
 banner.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -86,11 +87,6 @@ local function ShowBanner(text)
 	titleLabel.TextStrokeTransparency = 1
 	screen.Enabled = true
 	Animate(MeasureWidth(titleLabel) + BANNER_PADDING * 2 + edgeWidth, 0, TWEEN_IN)
-
-	-- TEMPORARY: settled geometry, once the tween has finished.
-	task.delay(BANNER_TIME + 0.1, function()
-		print("[banner] AbsoluteSize", banner.AbsoluteSize, "SliceScale", banner.SliceScale)
-	end)
 end
 
 local function HideBanner()
