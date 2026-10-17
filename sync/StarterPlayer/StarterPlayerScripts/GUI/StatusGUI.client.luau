@@ -25,6 +25,7 @@ local statusLabel = frame:WaitForChild("StatusLabel")
 local IMAGE_WIDTH = 882
 local IMAGE_HEIGHT = 376
 local IMAGE_EDGE = 200
+local IMAGE_BAND = 100
 local BANNER_HEIGHT = 44
 local BANNER_PADDING = 16
 local BANNER_TIME = 0.4
@@ -37,8 +38,11 @@ local TWEEN_OUT = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.Easing
 local sliceScale = BANNER_HEIGHT / IMAGE_HEIGHT
 local edgeWidth = IMAGE_EDGE * 2 * sliceScale
 
+-- Only the X cuts matter here; the Y cuts just can't be zero-width, which Roblox
+-- refuses to draw. Since BANNER_HEIGHT is IMAGE_HEIGHT * sliceScale, every row
+-- squashes by the same factor, so where the Y cuts land doesn't change the result.
 banner.ScaleType = Enum.ScaleType.Slice
-banner.SliceCenter = Rect.new(IMAGE_EDGE, 0, IMAGE_WIDTH - IMAGE_EDGE, IMAGE_HEIGHT)
+banner.SliceCenter = Rect.new(IMAGE_EDGE, IMAGE_BAND, IMAGE_WIDTH - IMAGE_EDGE, IMAGE_HEIGHT - IMAGE_BAND)
 banner.SliceScale = sliceScale
 
 -- TitleLabel is top-anchored in Frame, so centre the banner on its midline.
@@ -55,7 +59,7 @@ local function MeasureWidth(label)
 	params.Text = label.Text
 	params.Font = label.FontFace
 	params.Size = label.TextSize
-	params.Width = math.huge
+	params.Width = 10000
 	return TextService:GetTextBoundsAsync(params).X
 end
 
