@@ -26,12 +26,13 @@ local IMAGE_WIDTH = 882
 local IMAGE_HEIGHT = 376
 local IMAGE_EDGE = 200
 local IMAGE_BAND = 100
-local BANNER_SCALE = 1.7
+local BANNER_SCALE = 2.15
 local BANNER_PADDING = 16
 local BANNER_TIME = 0.4
 
--- Size the banner off the title text so the art always frames it. Raise
--- BANNER_SCALE if the artwork's edges crowd the text, lower it if it looks loose.
+-- Size the banner off the title text so the art always frames it. The multiplier
+-- looks large because only the middle 273px of the 376px source is actually drawn;
+-- the rest is transparent padding, so ~27% of this height is empty.
 local BANNER_HEIGHT = math.round(titleLabel.TextSize * BANNER_SCALE)
 
 local TWEEN_IN = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
