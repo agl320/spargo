@@ -24,7 +24,7 @@ local statusLabel = frame:WaitForChild("StatusLabel")
 
 local IMAGE_WIDTH = 160
 local IMAGE_HEIGHT = 56
-local IMAGE_EDGE = 22
+local IMAGE_EDGE = 26
 local IMAGE_BAND = 12
 local BANNER_SCALE = 2.15
 local BANNER_PADDING = 16
