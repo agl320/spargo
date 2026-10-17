@@ -7,11 +7,9 @@ local playCutscene = events.PlayCutscene
 local utils = ServerScriptService.Utils
 local focus = require(utils.Focus)
 
-local current = nil
-
 local Cutscene = {}
 
-function Cutscene.Play(map, duration)
+function Cutscene.Play(map, players, duration)
 	local folder = map.GetCutscene()
 	if not folder then return end
 
@@ -40,17 +38,14 @@ function Cutscene.Play(map, duration)
 	end
 	if not shot then return end
 
-	current = { Shots = shots, Timestamp = workspace:GetServerTimeNow(), Duration = duration }
-	playCutscene:FireAllClients(current.Shots, current.Timestamp, current.Duration)
+	local timestamp = workspace:GetServerTimeNow()
+	for _, player in ipairs(players) do
+		if player.Parent then playCutscene:FireClient(player, shots, timestamp, duration) end
+	end
 	focus.Add(starts)
 	task.delay(duration, function()
 		focus.Remove(starts)
-		current = nil
 	end)
 end
-
-playCutscene.OnServerEvent:Connect(function(player)
-	if current then playCutscene:FireClient(player, current.Shots, current.Timestamp, current.Duration) end
-end)
 
 return Cutscene

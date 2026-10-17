@@ -3,7 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local events = ReplicatedStorage.Events
-local showResults = events.ShowResults
 local showScore = events.ShowScore
 local turnStarted = events.TurnStarted
 local turnEnded = events.TurnEnded
@@ -17,18 +16,12 @@ local timer = require(utils.Timer)
 local focus = require(utils.Focus)
 local cutscene = require(utils.Cutscene)
 
-local dataStore = ServerScriptService.DataStore
-local coins = require(dataStore.Coins)
-
-local START_DELAY = 12
-local CUTSCENE_TIME = 10
+local START_DELAY = 10
 local SWAP_TIME = 4
 local TURN_TIME = 12
 local SCORE_DELAY = 2.5
 local SPLAT_DELAY = 5
 local END_DELAY = 4
-local RESULTS_TIME = 6
-local COINS_TIME = 3
 local WALK_SPEED = 32
 
 local players = {}
@@ -48,17 +41,17 @@ function Classic.Sync(player)
 end
 
 function Classic.Start(map)
-	timer.Start(START_DELAY, "Classic starting...")
-	cutscene.Play(map, CUTSCENE_TIME)
-	task.wait(START_DELAY)
-
 	players = Players:GetPlayers()
-	if #players == 0 then return end
+	if #players == 0 then return {} end
 
 	spawner.Respawn(players, map.GetSpawn(), function(character)
 		local humanoid = character:FindFirstChildOfClass("Humanoid")
 		if humanoid then humanoid.WalkSpeed = WALK_SPEED end
 	end)
+
+	timer.Start(START_DELAY, "Classic starting...")
+	cutscene.Play(map, players, START_DELAY)
+	task.wait(START_DELAY)
 
 	Random.new():Shuffle(players)
 	local order = {}
@@ -112,17 +105,12 @@ function Classic.Start(map)
 		return first.Score > second.Score
 	end)
 	task.wait(END_DELAY)
-	showResults:FireAllClients(scores, RESULTS_TIME)
-	task.wait(RESULTS_TIME)
-	for _, entry in ipairs(scores) do
-		coins.Add(entry.Player, entry.Score)
-	end
-	task.wait(COINS_TIME)
 	clones.Clear()
 	paint.Clear()
 
 	spawner.Respawn(players)
 	turn = nil
+	return scores
 end
 
 return Classic

@@ -13,92 +13,74 @@ local PAINT_COLORS = {
 	Color3.fromRGB(230, 120, 30),
 	Color3.fromRGB(240, 100, 160),
 }
-local SPLAT_COUNT_MIN, SPLAT_COUNT_MAX = 15, 30
-local SPLAT_ANGLE = 85
-local SPLAT_OFFSET = 0.3
-local SPLAT_SPEED_MIN, SPLAT_SPEED_MAX = 100, 100
-local SPLAT_SIZE_MIN, SPLAT_SIZE_MAX = 3, 9
-local SPLASH_COUNT_MIN, SPLASH_COUNT_MAX = 25, 50
-local SPLASH_ANGLE = 45
-local SPLASH_OFFSET = 0.1
-local SPLASH_SPEED_MIN, SPLASH_SPEED_MAX = 20, 40
-local SPLASH_SIZE_MIN, SPLASH_SIZE_MAX = 2, 4
-local DROP_DISTANCE = 200
-local DROP_GRAVITY = Vector3.new(0, -98.1, 0)
-local DROP_THICKNESS = 0.2
+local PAINT_COUNT_MIN, PAINT_COUNT_MAX = 50, 100
+local PAINT_SPEED_MIN, PAINT_SPEED_MAX = 25, 50
+local PAINT_SIZE_MIN, PAINT_SIZE_MAX = 2, 8
+local PAINT_THICKNESS_MIN, PAINT_THICKNESS_MAX = 0.1, 0.3
+local PAINT_DIAMETER = 0.4
+local PAINT_TWEEN = TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local DOWNWARD_FORCE = 30
+local FORWARD_FORCE = 100
+local FORWARD_CHANCE = 0.8
+local RAYCAST_OFFSET = 0.3
+local RAYCAST_DISTANCE = 200
+
+local random = Random.new()
+
+local template = Instance.new("Part")
+template.Anchored = true
+template.CanCollide = false
+template.CanQuery = false
+template.CanTouch = false
+template.AudioCanCollide = false
+template.CastShadow = false
+template.Shape = Enum.PartType.Ball
+template.Size = Vector3.new(PAINT_DIAMETER, PAINT_DIAMETER, PAINT_DIAMETER)
+template.Material = Enum.Material.SmoothPlastic
 
 local folder = nil
 
-local function ConeDirection(cone, angle)
-	return (cone
-		* CFrame.Angles(0, 0, math.rad(math.random(0, 359)))
-		* CFrame.Angles(math.rad(angle), 0, 0)).LookVector
-end
+local Paint = {}
 
-local function FirePaintDrop(origin, direction, speed, size, color)
-	local drop = Instance.new("Part")
-	drop.Anchored = true
-	drop.CanCollide = false
-	drop.CanQuery = false
-	drop.CastShadow = false
-	drop.Shape = Enum.PartType.Ball
-	drop.Size = Vector3.new(0.4, 0.4, 0.4)
-	drop.Color = color
-	drop.Material = Enum.Material.SmoothPlastic
-	drop.CFrame = CFrame.new(origin)
+function Paint.Splat(position, normal)
 	if not folder then
 		folder = Instance.new("Folder")
 		folder.Name = "Paint"
 		folder.Parent = workspace
 	end
-	drop.Parent = folder
 
-	caster.Fire(origin, direction, speed, {
-		Distance = DROP_DISTANCE,
-		Gravity = DROP_GRAVITY,
-		OnStep = function(position)
-			if drop.Parent then drop.CFrame = CFrame.new(position) end
-		end,
-		OnHit = function(result)
-			if not drop.Parent then return end
-			drop.Shape = Enum.PartType.Cylinder
-			drop.CFrame = CFrame.lookAt(result.Position + result.Normal * (DROP_THICKNESS / 2), result.Position + result.Normal)
-				* CFrame.Angles(0, math.pi / 2, 0)
-			TweenService:Create(drop, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-				Size = Vector3.new(DROP_THICKNESS, size, size)
-			}):Play()
-		end,
-		OnMiss = function()
-			if drop.Parent then drop:Destroy() end
-		end
-	})
-end
-
-local Paint = {}
-
-function Paint.Splat(position, normal)
 	local color = PAINT_COLORS[math.random(#PAINT_COLORS)]
+	local origin = position + normal * RAYCAST_OFFSET
+	local forward = Vector3.new(0, -DOWNWARD_FORCE, 0) - normal * FORWARD_FORCE
+	local downward = Vector3.new(0, -(DOWNWARD_FORCE + FORWARD_FORCE), 0)
+	for _ = 1, random:NextInteger(PAINT_COUNT_MIN, PAINT_COUNT_MAX) do
+		local size = random:NextNumber(PAINT_SIZE_MIN, PAINT_SIZE_MAX)
+		local thickness = random:NextNumber(PAINT_THICKNESS_MIN, PAINT_THICKNESS_MAX)
 
-	local splatCone = CFrame.lookAt(Vector3.zero, -normal)
-	for _ = 1, math.random(SPLAT_COUNT_MIN, SPLAT_COUNT_MAX) do
-		FirePaintDrop(
-			position + normal * SPLAT_OFFSET,
-			ConeDirection(splatCone, SPLAT_ANGLE),
-			math.random(SPLAT_SPEED_MIN, SPLAT_SPEED_MAX),
-			math.random(SPLAT_SIZE_MIN, SPLAT_SIZE_MAX),
-			color
-		)
-	end
+		local paint = template:Clone()
+		paint.Color = color
+		paint.CFrame = CFrame.new(origin)
+		paint.Parent = folder
 
-	local splashCone = CFrame.lookAt(Vector3.zero, normal)
-	for _ = 1, math.random(SPLASH_COUNT_MIN, SPLASH_COUNT_MAX) do
-		FirePaintDrop(
-			position + normal * SPLASH_OFFSET,
-			ConeDirection(splashCone, SPLASH_ANGLE),
-			math.random(SPLASH_SPEED_MIN, SPLASH_SPEED_MAX),
-			math.random(SPLASH_SIZE_MIN, SPLASH_SIZE_MAX),
-			color
-		)
+		caster.Fire(origin, random:NextUnitVector(), random:NextNumber(PAINT_SPEED_MIN, PAINT_SPEED_MAX), {
+			Distance = RAYCAST_DISTANCE,
+			Gravity = random:NextNumber() < FORWARD_CHANCE and forward or downward,
+			OnStep = function(step)
+				if paint.Parent then paint.CFrame = CFrame.new(step) end
+			end,
+			OnHit = function(result)
+				if not paint.Parent then return end
+				paint.Shape = Enum.PartType.Cylinder
+				paint.CFrame = CFrame.lookAt(result.Position + result.Normal * (thickness / 2), result.Position + result.Normal)
+					* CFrame.Angles(0, math.pi / 2, 0)
+				TweenService:Create(paint, PAINT_TWEEN, {
+					Size = Vector3.new(thickness, size, size)
+				}):Play()
+			end,
+			OnMiss = function()
+				if paint.Parent then paint:Destroy() end
+			end
+		})
 	end
 end
 

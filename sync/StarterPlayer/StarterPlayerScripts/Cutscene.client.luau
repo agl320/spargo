@@ -28,8 +28,6 @@ local function GetCFrame(points, alpha)
 end
 
 playCutscene.OnClientEvent:Connect(function(shots, timestamp, duration)
-	RunService:UnbindFromRenderStep(BIND_NAME)
-
 	local total = 0
 	for _, shot in ipairs(shots) do
 		shot.Time = 0
@@ -67,5 +65,3 @@ playCutscene.OnClientEvent:Connect(function(shots, timestamp, duration)
 		camera.Focus = cframe * CFrame.new(0, 0, -FOCUS_DISTANCE)
 	end)
 end)
-
-playCutscene:FireServer()

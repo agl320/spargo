@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
@@ -10,10 +9,7 @@ local intermission = music:WaitForChild("Intermission")
 local events = ReplicatedStorage:WaitForChild("Events")
 local gameStarted = events:WaitForChild("GameStarted")
 local gameEnded = events:WaitForChild("GameEnded")
-local turnStarted = events:WaitForChild("TurnStarted")
-local turnEnded = events:WaitForChild("TurnEnded")
-
-local player = Players.LocalPlayer
+local playCutscene = events:WaitForChild("PlayCutscene")
 
 local FADE_TIME = 1
 
@@ -40,22 +36,19 @@ local function Play(sound)
 	TweenService:Create(sound, TweenInfo.new(FADE_TIME), { Volume = volumes[sound] }):Play()
 end
 
-local function OnTurn(order)
-	Play(table.find(order, player.UserId) and track or lobby)
-end
-
 gameStarted.OnClientEvent:Connect(function(_, _, sound)
 	track = sound
-	Play(intermission)
-end)
-
-turnStarted.OnClientEvent:Connect(OnTurn)
-turnEnded.OnClientEvent:Connect(OnTurn)
-
-gameEnded.OnClientEvent:Connect(function()
 	Play(lobby)
 end)
 
-Play(lobby)
+playCutscene.OnClientEvent:Connect(function()
+	Play(track)
+end)
+
+gameEnded.OnClientEvent:Connect(function()
+	Play(intermission)
+end)
+
+Play(intermission)
 
 gameStarted:FireServer()
