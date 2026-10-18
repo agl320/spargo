@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local playCutscene = events:WaitForChild("PlayCutscene")
+local cutsceneEvents = events:WaitForChild("Cutscene")
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
@@ -27,7 +27,7 @@ local function GetCFrame(points, alpha)
 	return cframes[1]
 end
 
-playCutscene.OnClientEvent:Connect(function(shots, timestamp, duration)
+cutsceneEvents:WaitForChild("Play").OnClientEvent:Connect(function(shots, timestamp, duration)
 	local total = 0
 	for _, shot in ipairs(shots) do
 		shot.Time = 0

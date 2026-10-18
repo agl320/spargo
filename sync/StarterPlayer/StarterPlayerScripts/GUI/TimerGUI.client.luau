@@ -2,8 +2,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local startTimer = events:WaitForChild("StartTimer")
-local stopTimer = events:WaitForChild("StopTimer")
+local timerEvents = events:WaitForChild("Timer")
+
+local functions = ReplicatedStorage:WaitForChild("Functions")
+local timerFunctions = functions:WaitForChild("Timer")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
@@ -15,7 +17,7 @@ local timestampLabel = frame:WaitForChild("TimestampLabel")
 
 local timer = nil
 
-startTimer.OnClientEvent:Connect(function(timestamp, message)
+local function OnTimerStarted(timestamp, message)
 	if timer then task.cancel(timer) end
 	messageLabel.Text = message
 	screen.Enabled = true
@@ -30,9 +32,11 @@ startTimer.OnClientEvent:Connect(function(timestamp, message)
 		end
 		timer = nil
 	end)
-end)
+end
 
-stopTimer.OnClientEvent:Connect(function()
+timerEvents:WaitForChild("Started").OnClientEvent:Connect(OnTimerStarted)
+
+timerEvents:WaitForChild("Stopped").OnClientEvent:Connect(function()
 	if timer then
 		task.cancel(timer)
 		timer = nil
@@ -40,4 +44,5 @@ stopTimer.OnClientEvent:Connect(function()
 	screen.Enabled = false
 end)
 
-startTimer:FireServer()
+local timestamp, message = timerFunctions:WaitForChild("Get"):InvokeServer()
+if timestamp then OnTimerStarted(timestamp, message) end

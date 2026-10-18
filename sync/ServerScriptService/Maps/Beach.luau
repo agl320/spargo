@@ -12,14 +12,16 @@ local sounds = require(utils.Sounds)
 
 local assets = ReplicatedStorage.Assets
 local animations = assets.Animations
+local mapAnimations = animations.Map
 
-local effects = SoundService.Effects
+local gameplay = SoundService.Gameplay
+local mapSounds = gameplay.Map
 local music = SoundService.Music
 
 local Beach = map.new(template)
 
 Beach.Name = "Beach"
-Beach.WaitAnimation = animations.TorpedoLookAround
+Beach.WaitAnimation = mapAnimations.TorpedoLookAround
 Beach.Music = music.Beach
 
 function Beach.GetOrigin()
@@ -27,7 +29,7 @@ function Beach.GetOrigin()
 end
 
 function Beach.GetDirection()
-	return Beach.Model.Interactables.Cannon.Barrel.Muzzle.CFrame.LookVector
+	return Beach.GetOrigin().LookVector
 end
 
 function Beach.GetSeat()
@@ -35,16 +37,17 @@ function Beach.GetSeat()
 end
 
 function Beach.OnAim(pitch, yaw)
+	local cannon = Beach.Model.Interactables.Cannon
 	local pivot = Beach.Model:GetPivot()
-	local position = Beach.Model.Interactables.Cannon.Barrel.Pivot.CFrame.Position
+	local position = cannon.Barrel.Pivot.CFrame.Position
 	local yawRotation = CFrame.fromAxisAngle(pivot.UpVector, -math.rad(yaw))
 	local pitchRotation = CFrame.fromAxisAngle(pivot.RightVector, math.rad(pitch))
-	Beach.Model.Interactables.Cannon:PivotTo(CFrame.new(position) * yawRotation)
-	Beach.Model.Interactables.Cannon.Barrel:PivotTo(CFrame.new(position) * yawRotation * pitchRotation)
+	cannon:PivotTo(CFrame.new(position) * yawRotation)
+	cannon.Barrel:PivotTo(CFrame.new(position) * yawRotation * pitchRotation)
 end
 
 function Beach.OnFire()
-	sounds.Play(effects.CannonFire, Beach.Model.Interactables.Cannon.Barrel.Muzzle.Position)
+	sounds.Play(mapSounds.CannonFire, Beach.GetOrigin().Position)
 end
 
 return Beach

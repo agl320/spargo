@@ -8,10 +8,15 @@ local sounds = SoundService:WaitForChild("GUI")
 local upNextSound = sounds:WaitForChild("UpNext")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local gameStarted = events:WaitForChild("GameStarted")
-local gameEnded = events:WaitForChild("GameEnded")
-local turnStarted = events:WaitForChild("TurnStarted")
-local turnEnded = events:WaitForChild("TurnEnded")
+local mapEvents = events:WaitForChild("Map")
+local gameModeEvents = events:WaitForChild("GameMode")
+local gameEvents = events:WaitForChild("Game")
+local turnEvents = events:WaitForChild("Turn")
+
+local functions = ReplicatedStorage:WaitForChild("Functions")
+local mapFunctions = functions:WaitForChild("Map")
+local gameModeFunctions = functions:WaitForChild("GameMode")
+local turnFunctions = functions:WaitForChild("Turn")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
@@ -58,6 +63,7 @@ banner.Position = titleLabel.Position + UDim2.fromOffset(0, titleLabel.Size.Y.Of
 local titleStroke = titleLabel.TextStrokeTransparency
 
 local token = 0
+local map = nil
 
 local function MeasureWidth(label)
 	local params = Instance.new("GetTextBoundsParams")
@@ -104,12 +110,16 @@ local function GetProgress(order, count)
 	return "Turn " .. count .. "/" .. #order .. " complete"
 end
 
-gameStarted.OnClientEvent:Connect(function(mapName, modeName)
-	statusLabel.Text = ""
-	ShowBanner(mapName .. " - " .. modeName)
-end)
+local function OnMapLoaded(mapName)
+	map = mapName
+end
 
-turnStarted.OnClientEvent:Connect(function(order, index)
+local function OnGameModeStarted(modeName)
+	statusLabel.Text = ""
+	ShowBanner(map .. " - " .. modeName)
+end
+
+local function OnTurnStarted(order, index)
 	if order[index] == player.UserId then
 		statusLabel.Text = "Aim at the target to get points!"
 	elseif order[index + 1] == player.UserId then
@@ -118,16 +128,31 @@ turnStarted.OnClientEvent:Connect(function(order, index)
 	else
 		statusLabel.Text = GetProgress(order, index - 1)
 	end
-end)
+end
 
-turnEnded.OnClientEvent:Connect(function(order, index)
+local function OnTurnEnded(order, index)
 	if order[index + 1] == player.UserId then
 		statusLabel.Text = "You're up next, get ready!"
 	else
 		statusLabel.Text = GetProgress(order, index)
 	end
-end)
+end
 
-gameEnded.OnClientEvent:Connect(HideBanner)
+mapEvents:WaitForChild("Loaded").OnClientEvent:Connect(OnMapLoaded)
+gameModeEvents:WaitForChild("Started").OnClientEvent:Connect(OnGameModeStarted)
+turnEvents:WaitForChild("Started").OnClientEvent:Connect(OnTurnStarted)
+turnEvents:WaitForChild("Ended").OnClientEvent:Connect(OnTurnEnded)
+gameEvents:WaitForChild("Ended").OnClientEvent:Connect(HideBanner)
 
-gameStarted:FireServer()
+local mapName = mapFunctions:WaitForChild("Get"):InvokeServer()
+if mapName then OnMapLoaded(mapName) end
+
+local modeName = gameModeFunctions:WaitForChild("Get"):InvokeServer()
+if modeName then OnGameModeStarted(modeName) end
+
+local started, order, index = turnFunctions:WaitForChild("Get"):InvokeServer()
+if started then
+	OnTurnStarted(order, index)
+elseif order then
+	OnTurnEnded(order, index)
+end

@@ -9,13 +9,11 @@ local dataStore = ServerScriptService.DataStore
 local inventory = require(dataStore.Inventory)
 
 local events = ReplicatedStorage.Events
-local launcherAim = events.LauncherAim
-local launcherFire = events.LauncherFire
-local launcherLoad = events.LauncherLoad
-local launcherUnload = events.LauncherUnload
-local launcherFired = events.LauncherFired
-local launcherHit = events.LauncherHit
-local playAnimation = events.PlayAnimation
+local launcherEvents = events.Launcher
+local animationEvents = events.Animation
+
+local functions = ReplicatedStorage.Functions
+local launcherFunctions = functions.Launcher
 
 local modules = ReplicatedStorage.Modules
 local aim = require(modules.Aim)
@@ -23,6 +21,7 @@ local aim = require(modules.Aim)
 local LAUNCH_GRAVITY = Vector3.new(0, -10, 0)
 local LAUNCH_DISTANCE = 1000
 local LAUNCH_SPEED = 100
+local SPLAT_OFFSET = 0.3
 
 local launchers = {}
 
@@ -48,12 +47,13 @@ function Launcher.Load(player, map)
 	map.OnLoad()
 	launchers[player] = { Map = map }
 	map.OnAim(0, 0)
-	launcherLoad:FireAllClients(player)
-	playAnimation:FireClient(player, map.WaitAnimation)
+	launcherEvents.Loaded:FireAllClients(player)
+	animationEvents.Play:FireClient(player, map.WaitAnimation)
 end
 
 function Launcher.Fire(player, duration, onAimEnd)
 	local launcher = launchers[player]
+	if not launcher then return nil end
 	local expiry = duration and (workspace:GetServerTimeNow() + duration) or math.huge
 	repeat task.wait() until launcher.Power or workspace:GetServerTimeNow() >= expiry or not player.Parent
 	if onAimEnd then onAimEnd() end
@@ -69,11 +69,11 @@ function Launcher.Fire(player, duration, onAimEnd)
 	local direction = launcher.Map.GetDirection()
 	launcher.Map.OnFire()
 	if not player.Parent then return nil end
-	launcherFired:FireAllClients(player, launcher.Power)
+	launcherEvents.Fired:FireAllClients(player, launcher.Power)
 
 	local character = player.Character
 	if character then character.Parent = workspace end
-	playAnimation:FireClient(player, inventory.GetItem(player, "LaunchAnimations").Animation)
+	animationEvents.Play:FireClient(player, inventory.GetItem(player, "LaunchAnimations").Animation)
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local sound = root and sounds.Attach(inventory.GetItem(player, "LaunchSounds").Sound, root)
 
@@ -82,12 +82,12 @@ function Launcher.Fire(player, duration, onAimEnd)
 	caster.Fire(origin.Position, direction, launcher.Power * LAUNCH_SPEED, {
 		Distance = LAUNCH_DISTANCE,
 		Gravity = LAUNCH_GRAVITY,
-		OnStep = function(position, direction)
-			if character then character:PivotTo(CFrame.lookAt(position, position + direction)) end
+		OnStep = function(position, facing)
+			if character then character:PivotTo(CFrame.lookAt(position, position + facing)) end
 		end,
 		OnHit = function(result)
 			hit = result
-			if character then character:PivotTo(CFrame.lookAt(result.Position + result.Normal * 0.3, result.Position)) end
+			if character then character:PivotTo(CFrame.lookAt(result.Position + result.Normal * SPLAT_OFFSET, result.Position)) end
 			done = true
 		end,
 		OnMiss = function()
@@ -100,8 +100,8 @@ function Launcher.Fire(player, duration, onAimEnd)
 	if not player.Parent then return nil end
 
 	if hit then
-		launcherHit:FireAllClients(player, hit.Position)
-		playAnimation:FireClient(player, inventory.GetItem(player, "SplatAnimations").Animation)
+		launcherEvents.Hit:FireAllClients(player, hit.Position)
+		animationEvents.Play:FireClient(player, inventory.GetItem(player, "SplatAnimations").Animation)
 		sounds.Play(inventory.GetItem(player, "SplatSounds").Sound, hit.Position)
 	end
 
@@ -110,28 +110,31 @@ end
 
 function Launcher.Unload(player)
 	local launcher = launchers[player]
+	if not launcher then return end
 	launcher.Map.OnUnload()
-	launcherUnload:FireAllClients(player)
+	launcherEvents.Unloaded:FireAllClients(player)
 	launchers[player] = nil
 	if player.Parent then player:LoadCharacterAsync() end
 end
 
-launcherAim.OnServerEvent:Connect(function(player, pitch, yaw)
+launcherEvents.Aim.OnServerEvent:Connect(function(player, pitch, yaw)
 	local launcher = launchers[player]
 	if not launcher or launcher.Power or not IsNumber(pitch) or not IsNumber(yaw) then return end
 	launcher.Map.OnAim(math.clamp(pitch, aim.PITCH_ANGLE_MIN, aim.PITCH_ANGLE_MAX), math.clamp(yaw, aim.YAW_ANGLE_MIN, aim.YAW_ANGLE_MAX))
 end)
 
-launcherFire.OnServerEvent:Connect(function(player, power)
+launcherEvents.Fire.OnServerEvent:Connect(function(player, power)
 	local launcher = launchers[player]
 	if not launcher or not IsNumber(power) then return end
 	launcher.Power = math.clamp(power, 0, 1)
 end)
 
-launcherLoad.OnServerEvent:Connect(function(player)
-	for active in pairs(launchers) do
-		launcherLoad:FireClient(player, active)
+launcherFunctions.Get.OnServerInvoke = function()
+	local active = {}
+	for player in pairs(launchers) do
+		table.insert(active, player)
 	end
-end)
+	return active
+end
 
 return Launcher

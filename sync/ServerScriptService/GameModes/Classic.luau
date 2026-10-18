@@ -3,9 +3,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local events = ReplicatedStorage.Events
-local showScore = events.ShowScore
-local turnStarted = events.TurnStarted
-local turnEnded = events.TurnEnded
+local scoreEvents = events.Score
+local turnEvents = events.Turn
+
+local functions = ReplicatedStorage.Functions
+local turnFunctions = functions.Turn
 
 local utils = ServerScriptService.Utils
 local launcher = require(utils.Launcher)
@@ -24,11 +26,10 @@ local SPLAT_DELAY = 5
 local END_DELAY = 4
 local WALK_SPEED = 32
 
-local players = {}
 local turn = nil
 
 local function SendTurn(event, order, index)
-	turn = { Event = event, Order = order, Index = index }
+	turn = { Started = event == turnEvents.Started, Order = order, Index = index }
 	event:FireAllClients(order, index)
 end
 
@@ -36,12 +37,8 @@ local Classic = {}
 
 Classic.Name = "Classic"
 
-function Classic.Sync(player)
-	if turn then turn.Event:FireClient(player, turn.Order, turn.Index) end
-end
-
 function Classic.Start(map)
-	players = Players:GetPlayers()
+	local players = Players:GetPlayers()
 	if #players == 0 then return {} end
 
 	spawner.Respawn(players, map.GetSpawn(), function(character)
@@ -62,16 +59,16 @@ function Classic.Start(map)
 
 	for index, player in ipairs(players) do
 		if not player.Parent then
-			SendTurn(turnEnded, order, index)
+			SendTurn(turnEvents.Ended, order, index)
 			continue
 		end
 
-		SendTurn(turnStarted, order, index)
+		SendTurn(turnEvents.Started, order, index)
 		timer.Start(SWAP_TIME, player.DisplayName .. "'s turn starting...")
 		task.wait(SWAP_TIME)
 
 		if not player.Parent then
-			SendTurn(turnEnded, order, index)
+			SendTurn(turnEvents.Ended, order, index)
 			continue
 		end
 		launcher.Load(player, map)
@@ -90,7 +87,7 @@ function Classic.Start(map)
 			if hit then
 				paint.Splat(hit.Position, hit.Normal)
 				task.wait(SCORE_DELAY)
-				if points > 0 and player.Parent then showScore:FireAllClients(player, map.GetRings(), points) end
+				if points > 0 and player.Parent then scoreEvents.Show:FireAllClients(player, map.GetRings(), points) end
 				task.wait(SPLAT_DELAY)
 				clones.Create(player)
 			end
@@ -98,7 +95,7 @@ function Classic.Start(map)
 
 		focus.Remove({ root })
 		launcher.Unload(player)
-		SendTurn(turnEnded, order, index)
+		SendTurn(turnEvents.Ended, order, index)
 	end
 
 	table.sort(scores, function(first, second)
@@ -111,6 +108,10 @@ function Classic.Start(map)
 	spawner.Respawn(players)
 	turn = nil
 	return scores
+end
+
+turnFunctions.Get.OnServerInvoke = function()
+	if turn then return turn.Started, turn.Order, turn.Index end
 end
 
 return Classic

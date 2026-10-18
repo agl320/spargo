@@ -13,8 +13,10 @@ local sounds = require(utils.Sounds)
 
 local assets = ReplicatedStorage.Assets
 local animations = assets.Animations
+local mapAnimations = animations.Map
 
-local effects = SoundService.Effects
+local gameplay = SoundService.Gameplay
+local mapSounds = gameplay.Map
 local music = SoundService.Music
 
 local RUN_TIME = 2
@@ -30,7 +32,7 @@ local function SetArrowVisible(visible)
 end
 
 Stadium.Name = "Stadium"
-Stadium.WaitAnimation = animations.CrouchReady
+Stadium.WaitAnimation = mapAnimations.CrouchReady
 Stadium.Music = music.Stadium
 
 function Stadium.GetOrigin()
@@ -48,7 +50,7 @@ end
 function Stadium.OnLoad()
 	SetArrowVisible(true)
 	local animator = Stadium.Model.Interactables.PenaltySpot.Kicker.Humanoid.Animator
-	track = animator:LoadAnimation(animations.GoalkeeperRunKick)
+	track = animator:LoadAnimation(mapAnimations.GoalkeeperRunKick)
 end
 
 function Stadium.OnAim(pitch, yaw)
@@ -67,7 +69,7 @@ function Stadium.OnFire()
 	tween:Play()
 	track:Play()
 	tween.Completed:Wait()
-	sounds.Play(effects.Kick, penalty.KickSpot.Position)
+	sounds.Play(mapSounds.Kick, penalty.KickSpot.Position)
 end
 
 function Stadium.OnUnload()

@@ -7,9 +7,12 @@ local lobby = music:WaitForChild("Lobby")
 local intermission = music:WaitForChild("Intermission")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local gameStarted = events:WaitForChild("GameStarted")
-local gameEnded = events:WaitForChild("GameEnded")
-local playCutscene = events:WaitForChild("PlayCutscene")
+local mapEvents = events:WaitForChild("Map")
+local gameEvents = events:WaitForChild("Game")
+local cutsceneEvents = events:WaitForChild("Cutscene")
+
+local functions = ReplicatedStorage:WaitForChild("Functions")
+local mapFunctions = functions:WaitForChild("Map")
 
 local FADE_TIME = 1
 
@@ -36,19 +39,22 @@ local function Play(sound)
 	TweenService:Create(sound, TweenInfo.new(FADE_TIME), { Volume = volumes[sound] }):Play()
 end
 
-gameStarted.OnClientEvent:Connect(function(_, _, sound)
+local function OnMapLoaded(_, sound)
 	track = sound
 	Play(lobby)
-end)
+end
 
-playCutscene.OnClientEvent:Connect(function()
+mapEvents:WaitForChild("Loaded").OnClientEvent:Connect(OnMapLoaded)
+
+cutsceneEvents:WaitForChild("Play").OnClientEvent:Connect(function()
 	Play(track)
 end)
 
-gameEnded.OnClientEvent:Connect(function()
+gameEvents:WaitForChild("Ended").OnClientEvent:Connect(function()
 	Play(intermission)
 end)
 
 Play(intermission)
 
-gameStarted:FireServer()
+local name, sound = mapFunctions:WaitForChild("Get"):InvokeServer()
+if name then OnMapLoaded(name, sound) end

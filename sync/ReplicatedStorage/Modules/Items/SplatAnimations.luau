@@ -2,30 +2,38 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local assets = ReplicatedStorage:WaitForChild("Assets")
 local animations = assets:WaitForChild("Animations")
+local splatAnimations = animations:WaitForChild("Splat")
 
 return {
 	Default = {
-		Animation = animations:WaitForChild("DefaultSplat"),
+		Animation = splatAnimations:WaitForChild("Default"),
 	},
 	Cannonball = {
-		Animation = animations:WaitForChild("CannonballSplat"),
+		Animation = splatAnimations:WaitForChild("Cannonball"),
+		Price = 100,
 	},
 	Cartoon = {
-		Animation = animations:WaitForChild("CartoonSplat"),
+		Animation = splatAnimations:WaitForChild("Cartoon"),
+		Price = 100,
 	},
 	Eagle = {
-		Animation = animations:WaitForChild("EagleSplat"),
+		Animation = splatAnimations:WaitForChild("Eagle"),
+		Price = 100,
 	},
 	Glow = {
-		Animation = animations:WaitForChild("GlowSplat"),
+		Animation = splatAnimations:WaitForChild("Glow"),
+		Price = 100,
 	},
 	Nonchalant = {
-		Animation = animations:WaitForChild("NonchalantSplat"),
+		Animation = splatAnimations:WaitForChild("Nonchalant"),
+		Price = 100,
 	},
 	Starfish = {
-		Animation = animations:WaitForChild("StarfishSplat"),
+		Animation = splatAnimations:WaitForChild("Starfish"),
+		Price = 100,
 	},
 	Superhero = {
-		Animation = animations:WaitForChild("SuperheroSplat"),
+		Animation = splatAnimations:WaitForChild("Superhero"),
+		Price = 100,
 	},
 }

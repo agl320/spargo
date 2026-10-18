@@ -4,6 +4,8 @@ local OFFSET_Z_MIN, OFFSET_Z_MAX = -75, 75
 
 local Offset = {}
 
+Offset.Name = "Offset"
+
 function Offset.Start(map)
 	local target = map.GetTarget()
 	local random = Random.new()

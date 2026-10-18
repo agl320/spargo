@@ -1,3 +1,5 @@
+local SPAWN_HEIGHT = 3
+
 local Map = {}
 
 function Map.new(template)
@@ -18,11 +20,11 @@ function Map.new(template)
 	end
 
 	function map.GetRings()
-		return map.Model.Interactables.Target.Rings
+		return map.GetTarget().Rings
 	end
 
 	function map.GetSpawn()
-		return map.Model.Interactables.Spawn.CFrame + Vector3.new(0, 3, 0)
+		return map.Model.Interactables.Spawn.CFrame + Vector3.new(0, SPAWN_HEIGHT, 0)
 	end
 
 	function map.GetCutscene()

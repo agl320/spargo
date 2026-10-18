@@ -3,10 +3,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 
 local sounds = SoundService:WaitForChild("GUI")
-local showResultsSound = sounds:WaitForChild("ShowResults")
+local sound = sounds:WaitForChild("ShowResults")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local showResults = events:WaitForChild("ShowResults")
+local resultsEvents = events:WaitForChild("Results")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
@@ -15,7 +15,7 @@ local screen = gui:WaitForChild("ResultsGUI")
 local frame = screen:WaitForChild("Frame")
 local template = frame:WaitForChild("EntryTemplate")
 
-showResults.OnClientEvent:Connect(function(results, duration)
+resultsEvents:WaitForChild("Show").OnClientEvent:Connect(function(results, duration)
 	for _, entry in ipairs(frame:GetChildren()) do
 		if entry.Name == "Entry" then entry:Destroy() end
 	end
@@ -28,7 +28,7 @@ showResults.OnClientEvent:Connect(function(results, duration)
 		entry.Parent = frame
 	end
 	screen.Enabled = true
-	SoundService:PlayLocalSound(showResultsSound)
+	SoundService:PlayLocalSound(sound)
 	task.delay(duration, function()
 		screen.Enabled = false
 	end)

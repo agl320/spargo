@@ -3,9 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local launcherFired = events:WaitForChild("LauncherFired")
-local launcherHit = events:WaitForChild("LauncherHit")
-local launcherUnload = events:WaitForChild("LauncherUnload")
+local launcherEvents = events:WaitForChild("Launcher")
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
@@ -57,14 +55,14 @@ for index = 1, LINE_COUNT do
 	Reset(lines[index], index, math.random())
 end
 
-launcherFired.OnClientEvent:Connect(function(sender, amount)
+launcherEvents:WaitForChild("Fired").OnClientEvent:Connect(function(sender, amount)
 	shooter = sender
 	power = amount
 	target = subject.Is(sender) and power or 0
 end)
 
-launcherHit.OnClientEvent:Connect(Clear)
-launcherUnload.OnClientEvent:Connect(Clear)
+launcherEvents:WaitForChild("Hit").OnClientEvent:Connect(Clear)
+launcherEvents:WaitForChild("Unloaded").OnClientEvent:Connect(Clear)
 
 camera:GetPropertyChangedSignal("CameraSubject"):Connect(function()
 	target = shooter and subject.Is(shooter) and power or 0

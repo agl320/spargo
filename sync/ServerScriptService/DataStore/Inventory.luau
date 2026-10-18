@@ -8,22 +8,23 @@ local modules = ReplicatedStorage.Modules
 local items = require(modules.Items)
 
 local events = ReplicatedStorage.Events
-local updateInventory = events.UpdateInventory
-local equipItem = events.EquipItem
+local inventoryEvents = events.Inventory
 
-local DEFAULT_INVENTORY = {}
+local functions = ReplicatedStorage.Functions
+local inventoryFunctions = functions.Inventory
+
+local DEFAULT_INVENTORY = {
+	LaunchAnimations = { "Default" },
+	LaunchSounds = { "Default" },
+	SplatAnimations = { "Default" },
+	SplatSounds = { "Default" },
+}
 local DEFAULT_EQUIPPED = {
 	LaunchAnimations = "Default",
 	LaunchSounds = "Default",
 	SplatAnimations = "Default",
 	SplatSounds = "Default",
 }
-
-for key, list in pairs(items) do
-	DEFAULT_INVENTORY[key] = {}
-	for name in pairs(list) do table.insert(DEFAULT_INVENTORY[key], name) end
-	table.sort(DEFAULT_INVENTORY[key])
-end
 
 local Inventory = {}
 
@@ -41,6 +42,7 @@ function Inventory.Get(player)
 end
 
 function Inventory.Owns(player, key, name)
+	if not items[key] then return false end
 	local data = playerData.Get(player)
 	local owned = data and data.Inventory and data.Inventory[key]
 	return table.find(DEFAULT_INVENTORY[key], name) ~= nil or (owned ~= nil and table.find(owned, name) ~= nil)
@@ -52,7 +54,7 @@ function Inventory.Add(player, key, name)
 	data.Inventory = data.Inventory or {}
 	data.Inventory[key] = data.Inventory[key] or {}
 	table.insert(data.Inventory[key], name)
-	updateInventory:FireClient(player, Inventory.Get(player))
+	inventoryEvents.Updated:FireClient(player, Inventory.Get(player))
 end
 
 function Inventory.Equip(player, key, name)
@@ -60,24 +62,27 @@ function Inventory.Equip(player, key, name)
 	if not data or not items[key] or not items[key][name] or not Inventory.Owns(player, key, name) then return end
 	data.Equipped = data.Equipped or {}
 	data.Equipped[key] = name
-	updateInventory:FireClient(player, Inventory.Get(player))
+	inventoryEvents.Updated:FireClient(player, Inventory.Get(player))
 end
 
 function Inventory.GetEquipped(player, key)
+	if not items[key] then return end
 	local data = playerData.Get(player)
 	local name = data and data.Equipped and data.Equipped[key]
 	return items[key][name] and name or DEFAULT_EQUIPPED[key]
 end
 
 function Inventory.GetItem(player, key)
+	if not items[key] then return end
 	return items[key][Inventory.GetEquipped(player, key)]
 end
 
-updateInventory.OnServerEvent:Connect(function(player)
-	if playerData.Wait(player) then updateInventory:FireClient(player, Inventory.Get(player)) end
-end)
+inventoryFunctions.Get.OnServerInvoke = function(player)
+	if playerData.Wait(player) then return Inventory.Get(player) end
+end
 
-equipItem.OnServerEvent:Connect(function(player, key, name)
+inventoryEvents.Equip.OnServerEvent:Connect(function(player, key, name)
+	if typeof(key) ~= "string" or typeof(name) ~= "string" then return end
 	Inventory.Equip(player, key, name)
 end)
 

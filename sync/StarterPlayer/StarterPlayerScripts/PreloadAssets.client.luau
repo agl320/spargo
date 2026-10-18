@@ -5,7 +5,7 @@ local StarterGui = game:GetService("StarterGui")
 local TextService = game:GetService("TextService")
 
 local assets = ReplicatedStorage:WaitForChild("Assets")
-local effects = SoundService:WaitForChild("Effects")
+local gameplay = SoundService:WaitForChild("Gameplay")
 
 for _, descendant in ipairs(StarterGui:GetDescendants()) do
 	if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
@@ -18,4 +18,4 @@ for _, descendant in ipairs(StarterGui:GetDescendants()) do
 end
 
 ContentProvider:PreloadAsync(assets:GetDescendants())
-ContentProvider:PreloadAsync(effects:GetChildren())
+ContentProvider:PreloadAsync(gameplay:GetDescendants())

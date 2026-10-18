@@ -25,8 +25,6 @@ local FORWARD_CHANCE = 0.8
 local RAYCAST_OFFSET = 0.3
 local RAYCAST_DISTANCE = 200
 
-local random = Random.new()
-
 local template = Instance.new("Part")
 template.Anchored = true
 template.CanCollide = false
@@ -49,6 +47,7 @@ function Paint.Splat(position, normal)
 		folder.Parent = workspace
 	end
 
+	local random = Random.new()
 	local color = PAINT_COLORS[math.random(#PAINT_COLORS)]
 	local origin = position + normal * RAYCAST_OFFSET
 	local forward = Vector3.new(0, -DOWNWARD_FORCE, 0) - normal * FORWARD_FORCE

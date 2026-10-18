@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local events = ReplicatedStorage.Events
-local playCutscene = events.PlayCutscene
+local cutsceneEvents = events.Cutscene
 
 local utils = ServerScriptService.Utils
 local focus = require(utils.Focus)
@@ -40,7 +40,7 @@ function Cutscene.Play(map, players, duration)
 
 	local timestamp = workspace:GetServerTimeNow()
 	for _, player in ipairs(players) do
-		if player.Parent then playCutscene:FireClient(player, shots, timestamp, duration) end
+		if player.Parent then cutsceneEvents.Play:FireClient(player, shots, timestamp, duration) end
 	end
 	focus.Add(starts)
 	task.delay(duration, function()

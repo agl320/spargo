@@ -8,8 +8,8 @@ local bullseyeSound = sounds:WaitForChild("BullseyeScore")
 local ringSound = sounds:WaitForChild("RingScore")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local showScore = events:WaitForChild("ShowScore")
-local launcherUnload = events:WaitForChild("LauncherUnload")
+local scoreEvents = events:WaitForChild("Score")
+local launcherEvents = events:WaitForChild("Launcher")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
@@ -18,9 +18,9 @@ local utils = scripts:WaitForChild("Utils")
 local camera = workspace.CurrentCamera
 
 local screen = gui:WaitForChild("ScoreGUI")
-local titleLabel = screen:WaitForChild("TitleLabel")
-local pointsLabel = titleLabel:WaitForChild("PointsLabel")
-local titleScale = titleLabel:WaitForChild("UIScale")
+local title = screen:WaitForChild("TitleLabel")
+local pointsLabel = title:WaitForChild("PointsLabel")
+local titleScale = title:WaitForChild("UIScale")
 local pointsScale = pointsLabel:WaitForChild("UIScale")
 
 local subject = require(utils:WaitForChild("Subject"))
@@ -59,7 +59,7 @@ local function EndCutscene()
 	if camera.CameraType == Enum.CameraType.Scriptable then camera.CameraType = Enum.CameraType.Custom end
 end
 
-showScore.OnClientEvent:Connect(function(shooter, rings, points)
+scoreEvents:WaitForChild("Show").OnClientEvent:Connect(function(shooter, rings, points)
 	if not rings then return end
 	local bullseye = 0
 	local hit = nil
@@ -97,7 +97,7 @@ showScore.OnClientEvent:Connect(function(shooter, rings, points)
 		pointsScale.Scale = 0
 		titleScale.Scale = 1
 		screen.Enabled = true
-		titleLabel.Position = UDim2.fromOffset(edge.X + EDGE_PADDING + titleLabel.AbsoluteSize.X / 2, edge.Y)
+		title.Position = UDim2.fromOffset(edge.X + EDGE_PADDING + title.AbsoluteSize.X / 2, edge.Y)
 		Pop(titleScale).Completed:Once(function()
 			task.wait(POINTS_DELAY)
 			if lit ~= hit then return end
@@ -108,4 +108,4 @@ showScore.OnClientEvent:Connect(function(shooter, rings, points)
 	tween:Play()
 end)
 
-launcherUnload.OnClientEvent:Connect(EndCutscene)
+launcherEvents:WaitForChild("Unloaded").OnClientEvent:Connect(EndCutscene)

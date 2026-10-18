@@ -3,11 +3,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 
 local sounds = SoundService:WaitForChild("GUI")
-local clickSound = sounds:WaitForChild("Click")
+local sound = sounds:WaitForChild("Click")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local launcherLoad = events:WaitForChild("LauncherLoad")
-local launcherUnload = events:WaitForChild("LauncherUnload")
+local launcherEvents = events:WaitForChild("Launcher")
+
+local functions = ReplicatedStorage:WaitForChild("Functions")
+local launcherFunctions = functions:WaitForChild("Launcher")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
@@ -23,22 +25,24 @@ local subject = require(utils:WaitForChild("Subject"))
 
 local shooter = nil
 
-launcherLoad.OnClientEvent:Connect(function(sender)
+local function OnLauncherLoaded(sender)
 	if sender == player then return end
 	shooter = sender
 	screen.Enabled = true
-end)
+end
 
-launcherUnload.OnClientEvent:Connect(function(sender)
+launcherEvents:WaitForChild("Loaded").OnClientEvent:Connect(OnLauncherLoaded)
+
+launcherEvents:WaitForChild("Unloaded").OnClientEvent:Connect(function(sender)
 	shooter = nil
 	if sender == player then return end
-	if not subject.Is(player) then subject.Set(player) end
+	subject.Set(player)
 	status.Text = ""
 	screen.Enabled = false
 end)
 
 button.Activated:Connect(function()
-	SoundService:PlayLocalSound(clickSound)
+	SoundService:PlayLocalSound(sound)
 	if not shooter then return end
 	if subject.Is(player) then
 		subject.Set(shooter)
@@ -49,4 +53,6 @@ button.Activated:Connect(function()
 	end
 end)
 
-launcherLoad:FireServer()
+for _, sender in ipairs(launcherFunctions:WaitForChild("Get"):InvokeServer()) do
+	OnLauncherLoaded(sender)
+end

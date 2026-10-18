@@ -12,7 +12,6 @@ local template = screen:WaitForChild("LineTemplate")
 local LINE_COUNT = 48
 
 local outlines = {}
-local points = {}
 
 local function AddRings(rings)
 	local lines = {}
@@ -53,6 +52,7 @@ RunService.PreRender:Connect(function()
 			continue
 		end
 		local radius = edge.Size.Y / 2
+		local points = {}
 		for index = 1, LINE_COUNT do
 			local angle = index / LINE_COUNT * math.pi * 2
 			points[index] = camera:WorldToViewportPoint(edge.CFrame * (Vector3.new(0, math.cos(angle), math.sin(angle)) * radius))

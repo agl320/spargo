@@ -3,11 +3,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 
 local sounds = SoundService:WaitForChild("GUI")
-local clickSound = sounds:WaitForChild("Click")
+local sound = sounds:WaitForChild("Click")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local updateInventory = events:WaitForChild("UpdateInventory")
-local equipItem = events:WaitForChild("EquipItem")
+local inventoryEvents = events:WaitForChild("Inventory")
+
+local functions = ReplicatedStorage:WaitForChild("Functions")
+local inventoryFunctions = functions:WaitForChild("Inventory")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
@@ -52,8 +54,8 @@ local function Render()
 		item.LayoutOrder = index
 		item.Visible = true
 		item.Activated:Connect(function()
-			SoundService:PlayLocalSound(clickSound)
-			equipItem:FireServer(key, name)
+			SoundService:PlayLocalSound(sound)
+			inventoryEvents:WaitForChild("Equip"):FireServer(key, name)
 		end)
 		item.Parent = itemsFrame
 	end
@@ -62,16 +64,18 @@ end
 
 for button in pairs(TAB_CATEGORIES) do
 	button.Activated:Connect(function()
-		SoundService:PlayLocalSound(clickSound)
+		SoundService:PlayLocalSound(sound)
 		selected = button
 		Render()
 	end)
 end
 
-updateInventory.OnClientEvent:Connect(function(newOwned, newEquipped)
+local function OnInventoryUpdated(newOwned, newEquipped)
 	owned = newOwned
 	equipped = newEquipped
 	Render()
-end)
+end
 
-updateInventory:FireServer()
+inventoryEvents:WaitForChild("Updated").OnClientEvent:Connect(OnInventoryUpdated)
+
+OnInventoryUpdated(inventoryFunctions:WaitForChild("Get"):InvokeServer())

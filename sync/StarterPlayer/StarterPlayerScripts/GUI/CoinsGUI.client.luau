@@ -8,7 +8,10 @@ local collectSound = sounds:WaitForChild("CollectCoin")
 local clickSound = sounds:WaitForChild("Click")
 
 local events = ReplicatedStorage:WaitForChild("Events")
-local updateCoins = events:WaitForChild("UpdateCoins")
+local coinsEvents = events:WaitForChild("Coins")
+
+local functions = ReplicatedStorage:WaitForChild("Functions")
+local coinsFunctions = functions:WaitForChild("Coins")
 
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
@@ -17,9 +20,9 @@ local utils = scripts:WaitForChild("Utils")
 
 local screen = gui:WaitForChild("CoinsGUI")
 local frame = screen:WaitForChild("Frame")
-local amountLabel = frame:WaitForChild("AmountLabel")
+local label = frame:WaitForChild("AmountLabel")
 local template = frame:WaitForChild("CoinTemplate")
-local buyButton = frame:WaitForChild("BuyButton")
+local button = frame:WaitForChild("BuyButton")
 
 local storeGUI = gui:WaitForChild("StoreGUI")
 
@@ -43,10 +46,10 @@ local function SetLabel(amount)
 		text, replaced = text:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
 		if replaced == 0 then break end
 	end
-	amountLabel.Text = text
+	label.Text = text
 end
 
-updateCoins.OnClientEvent:Connect(function(amount)
+local function OnCoinsUpdated(amount)
 	if current and amount > current then
 		local gained = amount - current
 		local count = math.random(COIN_COUNT_MIN, math.clamp(gained, COIN_COUNT_MIN, COIN_COUNT_MAX))
@@ -82,11 +85,13 @@ updateCoins.OnClientEvent:Connect(function(amount)
 		SetLabel(amount)
 	end
 	current = amount
-end)
+end
 
-buyButton.Activated:Connect(function()
+coinsEvents:WaitForChild("Updated").OnClientEvent:Connect(OnCoinsUpdated)
+
+button.Activated:Connect(function()
 	SoundService:PlayLocalSound(clickSound)
 	activePanel.Toggle(storeGUI)
 end)
 
-updateCoins:FireServer()
+OnCoinsUpdated(coinsFunctions:WaitForChild("Get"):InvokeServer())

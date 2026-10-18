@@ -1,6 +1,6 @@
-local ActivePanel = {}
-
 local active = nil
+
+local ActivePanel = {}
 
 function ActivePanel.Open(screen)
 	if active == screen then return end

@@ -1,30 +1,38 @@
 local SoundService = game:GetService("SoundService")
 
-local sounds = SoundService:WaitForChild("Effects")
+local gameplay = SoundService:WaitForChild("Gameplay")
+local launchSounds = gameplay:WaitForChild("Launch")
 
 return {
 	Default = {
-		Sound = sounds:WaitForChild("DefaultLaunch"),
+		Sound = launchSounds:WaitForChild("Default"),
 	},
 	Floating = {
-		Sound = sounds:WaitForChild("FloatingLaunch"),
+		Sound = launchSounds:WaitForChild("Floating"),
+		Price = 100,
 	},
 	KingJulien = {
-		Sound = sounds:WaitForChild("KingJulienLaunch"),
+		Sound = launchSounds:WaitForChild("KingJulien"),
+		Price = 100,
 	},
 	Leeroy = {
-		Sound = sounds:WaitForChild("LeeroyLaunch"),
+		Sound = launchSounds:WaitForChild("Leeroy"),
+		Price = 100,
 	},
 	Nacho = {
-		Sound = sounds:WaitForChild("NachoLaunch"),
+		Sound = launchSounds:WaitForChild("Nacho"),
+		Price = 100,
 	},
 	Rocket = {
-		Sound = sounds:WaitForChild("RocketLaunch"),
+		Sound = launchSounds:WaitForChild("Rocket"),
+		Price = 100,
 	},
 	WeePigs = {
-		Sound = sounds:WaitForChild("WeePigsLaunch"),
+		Sound = launchSounds:WaitForChild("WeePigs"),
+		Price = 100,
 	},
 	Yippee = {
-		Sound = sounds:WaitForChild("YippeeLaunch"),
+		Sound = launchSounds:WaitForChild("Yippee"),
+		Price = 100,
 	},
 }
