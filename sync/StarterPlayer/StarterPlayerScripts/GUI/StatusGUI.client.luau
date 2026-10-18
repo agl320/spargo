@@ -31,17 +31,51 @@ local IMAGE_WIDTH = 160
 local IMAGE_HEIGHT = 56
 local IMAGE_EDGE = 26
 local IMAGE_BAND = 12
-local BANNER_SCALE = 2.15
 local BANNER_PADDING = 16
+local BANNER_INSET = 11
+local BANNER_DELAY = 0.5
 local BANNER_TIME = 0.4
-
--- Size the banner off the title text so the art always frames it. At the default
--- TextSize of 26 this lands on 56, the source image's own height, so the caps draw
--- at their authored size and SliceScale stays at 1.
-local BANNER_HEIGHT = math.round(titleLabel.TextSize * BANNER_SCALE)
+local TAG_TEXT = "NOW PLAYING"
+local TAG_COLOUR = Color3.fromRGB(16, 32, 52)
+local TAG_HEIGHT = 20
+local TAG_PADDING = 10
+local TAG_GAP = 2
 
 local TWEEN_IN = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 local TWEEN_OUT = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+
+-- The tag stacks above the title, so the banner has to frame both. Grow Frame by the
+-- same amount and StatusLabel, being bottom-anchored, stays clear of the taller banner.
+local tagTop = titleLabel.Position.Y.Offset
+local contentHeight = TAG_HEIGHT + TAG_GAP + titleLabel.Size.Y.Offset
+local BANNER_HEIGHT = contentHeight + BANNER_INSET * 2
+
+frame.Size += UDim2.fromOffset(0, TAG_HEIGHT + TAG_GAP)
+titleLabel.Position = UDim2.new(0.5, 0, 0, tagTop + TAG_HEIGHT + TAG_GAP)
+
+local tagLabel = Instance.new("TextLabel")
+tagLabel.Name = "TagLabel"
+tagLabel.Text = TAG_TEXT
+tagLabel.FontFace = titleLabel.FontFace
+tagLabel.TextSize = 14
+tagLabel.TextColor3 = Color3.new(1, 1, 1)
+tagLabel.BackgroundColor3 = TAG_COLOUR
+tagLabel.AnchorPoint = Vector2.new(0.5, 0)
+tagLabel.Position = UDim2.new(0.5, 0, 0, tagTop)
+tagLabel.Size = UDim2.fromOffset(0, TAG_HEIGHT)
+tagLabel.AutomaticSize = Enum.AutomaticSize.X
+tagLabel.BorderSizePixel = 0
+
+local tagPadding = Instance.new("UIPadding")
+tagPadding.PaddingLeft = UDim.new(0, TAG_PADDING)
+tagPadding.PaddingRight = UDim.new(0, TAG_PADDING)
+tagPadding.Parent = tagLabel
+
+local tagCorner = Instance.new("UICorner")
+tagCorner.CornerRadius = UDim.new(0, TAG_HEIGHT // 2)
+tagCorner.Parent = tagLabel
+
+tagLabel.Parent = frame
 
 -- The caps are the outer IMAGE_EDGE columns, held rigid by the 9-slice while the
 -- middle stretches. SliceScale maps them from source pixels to the drawn height.
@@ -55,9 +89,9 @@ banner.ScaleType = Enum.ScaleType.Slice
 banner.SliceCenter = Rect.new(IMAGE_EDGE, IMAGE_BAND, IMAGE_WIDTH - IMAGE_EDGE, IMAGE_HEIGHT - IMAGE_BAND)
 banner.SliceScale = sliceScale
 
--- TitleLabel is top-anchored in Frame, so centre the banner on its midline.
+-- Centre the banner on the tag-plus-title block rather than on the title alone.
 banner.AnchorPoint = Vector2.new(0.5, 0.5)
-banner.Position = titleLabel.Position + UDim2.fromOffset(0, titleLabel.Size.Y.Offset / 2)
+banner.Position = UDim2.new(0.5, 0, 0, tagTop + contentHeight / 2)
 
 -- The label is authored with a partly transparent stroke; fade to that, not to 0.
 local titleStroke = titleLabel.TextStrokeTransparency
@@ -83,17 +117,31 @@ local function Animate(width, transparency, info)
 		TextTransparency = transparency,
 		TextStrokeTransparency = transparency + (1 - transparency) * titleStroke
 	}):Play()
+	TweenService:Create(tagLabel, info, {
+		TextTransparency = transparency,
+		BackgroundTransparency = transparency
+	}):Play()
 end
 
+-- Held back by BANNER_DELAY so the banner doesn't snap in the instant a map swaps.
 local function ShowBanner(text)
 	token += 1
-	titleLabel.Text = text
-	banner.Size = UDim2.fromOffset(edgeWidth, BANNER_HEIGHT)
-	banner.ImageTransparency = 1
-	titleLabel.TextTransparency = 1
-	titleLabel.TextStrokeTransparency = 1
-	screen.Enabled = true
-	Animate(MeasureWidth(titleLabel) + BANNER_PADDING * 2 + edgeWidth, 0, TWEEN_IN)
+	local id = token
+	task.delay(BANNER_DELAY, function()
+		if token ~= id then return end
+		titleLabel.Text = text
+		banner.Size = UDim2.fromOffset(edgeWidth, BANNER_HEIGHT)
+		banner.ImageTransparency = 1
+		titleLabel.TextTransparency = 1
+		titleLabel.TextStrokeTransparency = 1
+		tagLabel.TextTransparency = 1
+		tagLabel.BackgroundTransparency = 1
+		screen.Enabled = true
+
+		local inner = math.max(MeasureWidth(titleLabel), MeasureWidth(tagLabel) + TAG_PADDING * 2)
+		if token ~= id then return end
+		Animate(inner + BANNER_PADDING * 2 + edgeWidth, 0, TWEEN_IN)
+	end)
 end
 
 local function HideBanner()
