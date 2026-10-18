@@ -34,15 +34,15 @@ local IMAGE_BAND = 12
 local BANNER_PADDING = 16
 local BANNER_INSET = 11
 local BANNER_DELAY = 0.5
-local BANNER_TIME = 0.4
-local TAG_TEXT = "NOW PLAYING"
+local BANNER_TIME = 0.75
+local TAG_TEXT = "MAP"
 local TAG_COLOUR = Color3.fromRGB(16, 32, 52)
 local TAG_HEIGHT = 20
 local TAG_PADDING = 10
 local TAG_GAP = 2
 
-local TWEEN_IN = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-local TWEEN_OUT = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+local TWEEN_IN = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+local TWEEN_OUT = TweenInfo.new(BANNER_TIME, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
 
 -- The tag stacks above the title, so the banner has to frame both. Grow Frame by the
 -- same amount and StatusLabel, being bottom-anchored, stays clear of the taller banner.
